@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HARİTA</title>
+    <script src="https://api-maps.yandex.com/2.1/?lang=en_RU" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }    
+        #map {
+            height: 800px;
+            width: 100%;
+            margin-top: 20px;
+        }  
+        td{
+            border: 1px solid black;
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="map"></div>  
+    <table id="veriler">
+        <tr>
+            <th >Koordinatlar</th>
+        </tr>
+    </table>
+    <table id="veriler4">
+        <tr>
+            <th >Koordinatlar</th>
+        </tr>
+    </table>
+    <table id="verilerorta">
+        <tr>
+            <th >Koordinatlar</th>
+        </tr>
+    </table>
+    <script>
+        ymaps.ready(init);
+        var rectangle;
+        var mdList = {{ mdList | tojson }};
+        var orta_nokta = {{ orta_nokta | tojson }};
+        var rectangleCoordinates = {{ rcList | tojson }};
+        var table = document.getElementById('veriler');
+        var table1 = document.getElementById('veriler4');
+        var table2 = document.getElementById('verilerorta');
+        var orta_merkez;
+        
+        function init() {
+            map = new ymaps.Map("map", {
+                center: orta_nokta, // Ortalama Noktası olarak belirlenmiş koordinat
+                zoom: 13
+            });
+
+            // Markerları haritaya ekle
+            for (var i = 0; i < mdList.length; i++) {
+                var marker = new ymaps.Placemark(mdList[i], {}, {
+                    draggable: true
+                });
+                map.geoObjects.add(marker);
+                var row = table.insertRow();
+                var cell = row.insertCell();
+                cell.appendChild(document.createTextNode(mdList[i]));
+            }
+            
+            // Dörtgeni haritaya ekle
+            var polygon = new ymaps.GeoObject({
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [rectangleCoordinates],
+                    fillRule: "nonZero"
+                },
+                properties: {
+                    hintContent: "Rectangle"
+                }
+            }, {
+                draggable: true,
+                strokeColor: '#0000FF',
+                strokeOpacity: 0.8,
+                strokeWidth: 2
+            });
+            map.geoObjects.add(polygon);
+
+            // Listen for the dragend event to capture new coordinates after moving
+            polygon.events.add('dragend', function (e) {
+                // Calculate the center coordinates
+                var newRectangleCoordinates = polygon.geometry.getCoordinates()[0];
+                var sumLat = 0, sumLng = 0;
+                for (var i = 0; i < newRectangleCoordinates.length; i++) {
+                    sumLat += newRectangleCoordinates[i][0];
+                    sumLng += newRectangleCoordinates[i][1];
+                }
+                var centerLat = sumLat / newRectangleCoordinates.length;
+                var centerLng = sumLng / newRectangleCoordinates.length;
+
+                console.log(centerLat + " : " +centerLng)
+
+                table1.innerHTML = 
+                    "<tr>"+
+                        "<th >Koordinatlar</th>"+
+                    "</tr>"
+
+                for (var i = 0; i < newRectangleCoordinates.length -1; i++){
+                    var row = table1.insertRow();
+                    var cell = row.insertCell();
+                    cell.appendChild(document.createTextNode(newRectangleCoordinates[i]));
+                }
+                orta_merkez = [centerLat,centerLng]
+                table2.innerHTML = 
+                    "<tr>"+
+                        "<th >Koordinatlar</th>"+
+                    "</tr>"
+                var row = table2.insertRow();
+                var cell = row.insertCell();
+                cell.appendChild(document.createTextNode(orta_merkez));
+                gonder(newRectangleCoordinates);
+                ciz();
+            });
+
+            function gonder(newRectangleCoordinates) {
+                var data = {
+                    "mdList1": mdList,
+                    "rectangleCoordinates": newRectangleCoordinates
+                };
+
+                fetch('/gonder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+            }
+            // Önceki çizgileri tutacak bir dizi tanımlayın
+            var polylineList = [];
+
+            function ciz() {
+                // Eski çizgileri sildikten sonra
+                // Yeni çizgileri eklemek için önceki referansları temizleyin
+                for (var i = 0; i < polylineList.length; i++) {
+                    map.geoObjects.remove(polylineList[i]);
+                }
+                polylineList = [];
+
+                // Ortalama Nokta ile her bir marker arasında çizgi çiz
+                for (var i = 0; i < mdList.length; i++) {
+                    var distance = ymaps.coordSystem.geo.getDistance(orta_nokta, mdList[i]);
+                    console.log("Ortalama Nokta ile Marker", i + 1, "arasındaki uzaklık:", distance, "metre");
+                    var line = new ymaps.Polyline([orta_merkez, mdList[i]], {}, {
+                        strokeColor: isPointInsideRectangle(mdList[i], rectangleCoordinates) ? "#FFFFFF" : "#000000",
+                        strokeWidth: 2,
+                        strokeOpacity: 0.8
+                    });
+                    map.geoObjects.add(line);
+
+                    // Yeni çizgi referansını dizinize ekleyin
+                    polylineList.push(line);
+                }
+            }
+
+            function isPointInsideRectangle(point, rectangle) {
+                // Koordinatlar verilen noktanın içinde mi kontrol edin
+                return point[0] >= rectangle[0][0] && point[0] <= rectangle[1][0] &&
+                    point[1] >= rectangle[0][1] && point[1] <= rectangle[1][1];
+            }
+
+            function removeLastPolyline() {
+                if (polylineList.length > 0) {
+                    var lastPolyline = polylineList.pop(); // Son çizgiyi al
+                    map.geoObjects.remove(lastPolyline); // Haritadan kaldır
+                }
+            }
+        }
+
+        function isPointInsideRectangle(point, rectangleCoordinates) {
+            var crossings = 0;
+
+            // Noktanın koordinatlarını al
+            var pointX = point[0];
+            var pointY = point[1];
+
+            // Dörtgenin koordinatlarını al
+            var rect = rectangleCoordinates;
+            var rectX = rect[0][0];
+            var rectY = rect[0][1];
+            var rectWidth = rect[1][0] - rectX;
+            var rectHeight = rect[2][1] - rectY;
+
+            // Nokta, dörtgenin içindeyse true döndür
+            if (pointX >= rectX && pointX <= rectX + rectWidth && pointY >= rectY && pointY <= rectY + rectHeight) {
+                return true;
+            }
+
+            // Nokta, dörtgenin dışında ise false döndür
+            return false;
+        }
+    </script>   
+</body>
+</html>
