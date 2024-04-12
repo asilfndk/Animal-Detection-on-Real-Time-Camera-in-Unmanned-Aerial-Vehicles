@@ -4,17 +4,17 @@ import random
 import json
 
 class VideoProcessor:
-    def __init__(self, video_file, target_width, target_height, num_animals):
+    def __init__(self, video_file, target_width, target_height):
         self.video_file = video_file
         self.target_width = target_width
         self.target_height = target_height
         self.cap = cv2.VideoCapture(video_file)
-        self.animals = self.create_animals(num_animals)
+        self.animals = self.create_animals()
         self.corners = None
 
         with open('output.json', 'r') as f:
             data = json.load(f)
-            rectangle_data = data['rectangle_data'][:4]
+            rectangle_data = data['kamera_koseleri']
             self.corners = {
                 'top_left': tuple(rectangle_data[0]),
                 'top_right': tuple(rectangle_data[1]),
@@ -29,14 +29,20 @@ class VideoProcessor:
             'bottom_rightpixel': (1400, 920)
         }
 
-    def create_animals(self, num_animals):
+    def create_animals(self):
         animals = []
         with open('output.json', 'r') as f:
             data = json.load(f)
-            marker_coords = data['marker_coords']
+            marker_coords = data['hayvan_konumları']
+            num_animals = len(marker_coords)
+            used_markers = [] 
             for i in range(num_animals):
-                random_marker_index = random.randint(0, len(marker_coords) - 1)
-                random_marker = marker_coords[random_marker_index]
+                available_markers = [marker for marker in marker_coords if marker not in used_markers]
+                if not available_markers:
+                    print("Tüm konumlar kullanıldı.")
+                    break
+                random_marker = random.choice(available_markers)
+                used_markers.append(random_marker)
                 animal_name = f'Animal{i+1}'
                 animal = {
                     'name': animal_name,
@@ -49,7 +55,6 @@ class VideoProcessor:
                 animals.append(animal)
                 print(f'{animal_name} coordinates: {random_marker}')
         return animals
-
     def process_video(self):
         while self.cap.isOpened():
             ret, frame = self.cap.read()
@@ -123,10 +128,9 @@ class VideoProcessor:
             cv2.putText(background, f"{animal['name']} Distance: {animal_distance}",
                         (arrow_end_x + 10, arrow_end_y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 if __name__ == "__main__":
-    video_file = "videos\ornek_video.mp4"
+    video_file = "videos/ornek_video.mp4"
     target_width = 1920
     target_height = 1080
-    num_animals = 5
 
-    video_processor = VideoProcessor(video_file, target_width, target_height, num_animals)
+    video_processor = VideoProcessor(video_file, target_width, target_height)
     video_processor.process_video()
