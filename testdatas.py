@@ -33,8 +33,6 @@ def hesapla_metre(coord1, coord2):
 
     return distancem
 
-
-
 @app.route('/sonuc', methods=['POST'])
 def sonuc():    
     if request.method == 'POST':
@@ -42,17 +40,12 @@ def sonuc():
         marker_data = request.form.get('markerData')
         rectangle_data = request.form.get('rectangleData')
 
-         # İlk elemanı silmek için marker_data'yı listeye dönüştürüp dilimleyin
+        # İlk elemanı silmek için marker_data'yı listeye dönüştürüp dilimleyin
         marker_data_list = eval(marker_data)
         marker_data_list = marker_data_list[1:]
 
         rectangle_data_list = eval(rectangle_data)
         rectangle_data_list = rectangle_data_list[1:]
-
-
-        # İşlemleri burada gerçekleştir, örneğin veritabanına kaydet
-        print("Marker Data:", marker_data)
-        print("Rectangle Data:", rectangle_data)
 
         # Dört koordinatın x ve y değerlerinin ortalamasını alarak orta noktayı bulma
         sum_x = sum(coord[0] for coord in rectangle_data_list)
@@ -60,33 +53,34 @@ def sonuc():
         center_x = sum_x / len(rectangle_data_list)
         center_y = sum_y / len(rectangle_data_list)
 
-        print("Orta Nokta Koordinatları:", (center_x, center_y))
+        # Hayvan koordinatları ve diğer verileri oluştur
+        animals_coords = {}
+        for i, coords in enumerate(marker_data_list, start=1):
+            animal_coords = {
+                "x": coords[0],
+                "y": coords[1],
+                "name": f"Hayvan{i}",
+                "temperature": 15 + i * 2,  # Sıcaklık için varsayılan bir değer
+                "distance_metre": hesapla_metre((center_x, center_y), coords)
+            }
+            animals_coords[f"animal_coords_{i}"] = animal_coords
 
-        # Marker verilerinin her biri için orta noktaya olan kuş uçuşu mesafesini hesapla
-        distances_kus = []
-        distances_metre = []
-        for marker_coords in marker_data_list:
-            distance_kus = hesapla_kus((center_x, center_y), marker_coords)
-            distances_kus.append(distance_kus)
+        # Kamera koordinatları
+        camera_coords = rectangle_data_list[:4]  # Sadece ilk dört koordinatı al
 
-            distance_metre = hesapla_metre((center_x, center_y), marker_coords)
-            distances_metre.append(distance_metre)
-            print(marker_coords ," Kuş Uçuşu Mesafe:", distance_kus, "   ||   metre mesafe : ", distance_metre)  
-
+        # JSON verisini oluştur
         data = {
             "center_x": center_x,
             "center_y": center_y,
-            "marker_coords": marker_data_list,
-            "rectangle_data": rectangle_data_list,
-            "distance_metre" : distances_metre,
-            "distance_kus" : distances_kus
+            "animal_coords": animals_coords,
+            "camera_coords": camera_coords
         }
 
-        json_data = json.dumps(data)
+        # JSON dosyasına yaz
         with open("output.json", "w") as json_file:
-            json_file.write(json_data)
+            json.dump(data, json_file)
 
-        return render_template('sonuc.html', mdList = marker_data_list, distance = distance, rcList = rectangle_data_list, orta_nokta = (center_x, center_y))
+        return render_template('sonuc.html', mdList=marker_data_list, distance=distance, rcList=rectangle_data_list, orta_nokta=(center_x, center_y))
 
 @app.route('/', methods=['GET'])
 def index():    
@@ -114,41 +108,35 @@ def gonder():
     center_x = sum_x / len(rectangle_data_list)
     center_y = sum_y / len(rectangle_data_list)
 
-    print("Orta Nokta Koordinatları:", (center_x, center_y))
-
-    # Marker verilerinin her biri için orta noktaya olan kuş uçuşu mesafesini hesapla
-    distances_kus = []
-    distances_metre = []
-    for marker_coords in marker_data_list:
-        distance_kus = hesapla_kus((center_x, center_y), marker_coords)
-        distances_kus.append(distance_kus)
-
-        distance_metre = hesapla_metre((center_x, center_y), marker_coords)
-        distances_metre.append(distance_metre)
-        print(marker_coords ," Kuş Uçuşu Mesafe:", distance_kus, "   ||   metre mesafe : ", distance_metre)  
-        print(center_x, " ", center_y)
-    
-    data = {
-            "center_x": center_x,
-            "center_y": center_y,
-            "marker_coords": marker_data_list,
-            "rectangle_data": rectangle_data_list,
-            "distance_metre" : distances_metre,
-            "distance_kus" : distances_kus
+    # Hayvan koordinatları ve diğer verileri oluştur
+    animals_coords = {}
+    for i, coords in enumerate(marker_data_list, start=1):
+        animal_coords = {
+            "x": coords[0],
+            "y": coords[1],
+            "name": f"Hayvan{i}",
+            "temperature": 15 + i * 2,  # Sıcaklık için varsayılan bir değer
+            "distance_metre": hesapla_metre((center_x, center_y), coords)
         }
-    
-    json_data = json.dumps(data)
-    with open("output.json", "w") as json_file:
-        json_file.write(json_data)
-    
+        animals_coords[f"animal_coords_{i}"] = animal_coords
 
-    return render_template('sonuc.html', mdList = marker_data_list, distance = distance, rcList = rectangle_data_list, orta_nokta = (center_x, center_y))
-        
-    
+    # Kamera koordinatları
+    camera_coords = rectangle_data_list[:4]  # Sadece ilk dört koordinatı al
+
+    # JSON verisini oluştur
+    data = {
+        "center_x": center_x,
+        "center_y": center_y,
+        "animal_coords": animals_coords,
+        "camera_coords": camera_coords
+    }
+
+    # JSON dosyasına yaz
+    with open("output.json", "w") as json_file:
+        json.dump(data, json_file)
+
     # İşlemleri yaptıktan sonra bir yanıt gönderin. Örneğin JSON formatında bir yanıt gönderebilirsiniz.
     return jsonify({"message": "Veriler başarıyla alındı!", "data": data})
 
 if __name__ == '__main__':
     app.run(debug=False)
-
-
