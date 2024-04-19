@@ -14,26 +14,19 @@ class VideoProcessor:
 
         with open('output.json', 'r') as f:
             data = json.load(f)
-            rectangle_data = data['kamera_koseleri']
+            rectangle_data = data['camera_coords']
             self.corners = {
                 'top_left': tuple(rectangle_data[0]),
                 'top_right': tuple(rectangle_data[1]),
                 'bottom_left': tuple(rectangle_data[2]),
                 'bottom_right': tuple(rectangle_data[3])
             }
-        
-        self.cornerspixel = {
-            'top_leftpixel': (150, 170),
-            'top_rightpixel': (1400, 170),
-            'bottom_leftpixel': (150, 920),
-            'bottom_rightpixel': (1400, 920)
-        }
 
     def create_animals(self):
         animals = []
         with open('output.json', 'r') as f:
             data = json.load(f)
-            marker_coords = data['hayvan_konumları']
+            marker_coords = data['animal_coords']
             num_animals = len(marker_coords)
             used_markers = [] 
             for i in range(num_animals):
@@ -43,7 +36,7 @@ class VideoProcessor:
                     break
                 random_marker = random.choice(available_markers)
                 used_markers.append(random_marker)
-                animal_name = f'Animal{i+1}'
+                animal_name = f'Hayvan{i}'
                 animal = {
                     'name': animal_name,
                     'size': 20,
@@ -53,7 +46,7 @@ class VideoProcessor:
                     'coordinates': random_marker
                 }
                 animals.append(animal)
-                print(f'{animal_name} coordinates: {random_marker}')
+                print(f'{animal_name} coordinates: {animal["coordinates"]}')
         return animals
     def process_video(self):
         while self.cap.isOpened():
@@ -82,11 +75,9 @@ class VideoProcessor:
         cv2.destroyAllWindows()
 
     def draw_corners(self, background):
-        for corner_name_pixel, corner_pos_pixel in self.cornerspixel.items():
-            corner_name = corner_name_pixel.replace("pixel", "")
-            corner_pos = self.corners[corner_name]
-            text = f"{corner_pos}"
-            cv2.putText(background, text, corner_pos_pixel, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        for corner_name, corner_pos in self.corners.items():
+            text = f"{corner_name}: {corner_pos}"
+            cv2.putText(background, text, (int(corner_pos[0]), int(corner_pos[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def draw_animal(self, background, x, y):
         cv2.rectangle(background, (x, y), (x + 20, y + 20), (0, 255, 0), -1)
@@ -127,6 +118,7 @@ class VideoProcessor:
 
             cv2.putText(background, f"{animal['name']} Distance: {animal_distance}",
                         (arrow_end_x + 10, arrow_end_y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+
 if __name__ == "__main__":
     video_file = "videos/ornek_video.mp4"
     target_width = 1920
