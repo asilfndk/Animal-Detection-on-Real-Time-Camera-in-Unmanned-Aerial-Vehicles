@@ -3,51 +3,54 @@ import numpy as np
 import random
 import json
 
+
 class VideoProcessor:
-    def __init__(self, video_file, target_width, target_height):
+    def __init__(self, video_file, target_width, target_height, num_animals):
         self.video_file = video_file
         self.target_width = target_width
         self.target_height = target_height
         self.cap = cv2.VideoCapture(video_file)
-        self.animals = self.create_animals()
+        self.animals = self.create_animals(num_animals)
         self.corners = None
 
         with open('output.json', 'r') as f:
             data = json.load(f)
-            rectangle_data = data['camera_coords']
+            camera_coords = data['camera_coords'][:4]
             self.corners = {
-                'top_left': tuple(rectangle_data[0]),
-                'top_right': tuple(rectangle_data[1]),
-                'bottom_left': tuple(rectangle_data[2]),
-                'bottom_right': tuple(rectangle_data[3])
+                'top_left': tuple(camera_coords[0]),
+                'top_right': tuple(camera_coords[1]),
+                'bottom_left': tuple(camera_coords[2]),
+                'bottom_right': tuple(camera_coords[3])
             }
+        
+        self.cornerspixel = {
+            'top_leftpixel': (150, 170),
+            'top_rightpixel': (1400, 170),
+            'bottom_leftpixel': (150, 920),
+            'bottom_rightpixel': (1400, 920)
+        }
 
-    def create_animals(self):
+    def create_animals(self, num_animals):
         animals = []
         with open('output.json', 'r') as f:
             data = json.load(f)
-            marker_coords = data['animal_coords']
-            num_animals = len(marker_coords)
-            used_markers = [] 
+            animal_coords = data['animal_coords']
             for i in range(num_animals):
-                available_markers = [marker for marker in marker_coords if marker not in used_markers]
-                if not available_markers:
-                    print("Tüm konumlar kullanıldı.")
-                    break
-                random_marker = random.choice(available_markers)
-                used_markers.append(random_marker)
-                animal_name = f'Hayvan{i}'
+                animal_name = f'Animal{i+1}'
+                random_animal_key = f'animal_coords_{random.randint(1, len(animal_coords))}'
+                random_animal = animal_coords[random_animal_key]
                 animal = {
                     'name': animal_name,
                     'size': 20,
                     'x': random.randint(0, self.target_width - 20),
                     'y': random.randint(0, self.target_height - 20),
                     'color': (0, 255, 0),
-                    'coordinates': random_marker
+                    'coordinates': random_animal
                 }
                 animals.append(animal)
-                print(f'{animal_name} coordinates: {animal["coordinates"]}')
+                print(f'{animal_name} coordinates: {random_animal}')
         return animals
+
     def process_video(self):
         while self.cap.isOpened():
             ret, frame = self.cap.read()
@@ -75,9 +78,11 @@ class VideoProcessor:
         cv2.destroyAllWindows()
 
     def draw_corners(self, background):
-        for corner_name, corner_pos in self.corners.items():
-            text = f"{corner_name}: {corner_pos}"
-            cv2.putText(background, text, (int(corner_pos[0]), int(corner_pos[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        for corner_name_pixel, corner_pos_pixel in self.cornerspixel.items():
+            corner_name = corner_name_pixel.replace("pixel", "")
+            corner_pos = self.corners[corner_name]
+            text = f"{corner_pos}"
+            cv2.putText(background, text, corner_pos_pixel, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def draw_animal(self, background, x, y):
         cv2.rectangle(background, (x, y), (x + 20, y + 20), (0, 255, 0), -1)
@@ -121,8 +126,10 @@ class VideoProcessor:
 
 if __name__ == "__main__":
     video_file = "videos/ornek_video.mp4"
+    # video_file = 0
     target_width = 1920
     target_height = 1080
+    num_animals = 5
 
-    video_processor = VideoProcessor(video_file, target_width, target_height)
+    video_processor = VideoProcessor(video_file, target_width, target_height, num_animals)
     video_processor.process_video()
