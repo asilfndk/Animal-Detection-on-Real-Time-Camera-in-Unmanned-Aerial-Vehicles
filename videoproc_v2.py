@@ -24,6 +24,25 @@ corner_points = {
 }
 edge_names = ["Sag Taraf","Ust Taraf","Sol Taraf","Alt Taraf"]
 
+def calculate_pixel_coordinates(lat, lon, corner_coords, image_dimensions):
+    # Unpack corner coordinates and image dimensions
+    (lat1, lon1), (lat2, lon2), (lat3, lon3), (lat4, lon4) = corner_coords
+    image_width, image_height = image_dimensions
+    
+    # Calculate center latitude and longitude by averaging the corners
+    center_lat = (lat1 + lat2 + lat3 + lat4) / 4
+    center_lon = (lon1 + lon2 + lon3 + lon4) / 4
+    
+    # Calculate pixel scale assuming uniform latitude and longitude scaling
+    lat_scale = image_height / (max(lat1, lat2, lat3, lat4) - min(lat1, lat2, lat3, lat4))
+    lon_scale = image_width / (max(lon1, lon2, lon3, lon4) - min(lon1, lon2, lon3, lon4))
+    
+    # Convert latitude and longitude to pixel coordinates
+    x = image_width / 2 + (lon - center_lon) * lon_scale
+    y = image_height / 2 - (lat - center_lat) * lat_scale
+    
+    return int(x), int(y)
+
 # Videoyu açık tut
 while(cap.isOpened()):
     # Video çerçevesini oku
@@ -76,7 +95,42 @@ while(cap.isOpened()):
             
             # Hayvanın ekran dışında olduğu ve en yakın kenarı yazdır
             cv2.putText(frame, f"{animal_data['name']} disinda ({nearest_side_name})", (0, y_offset), font, 0.5, text_color, 1, cv2.LINE_AA)
-        
+            
+            # Get dimensions of the frame
+            height, width = frame.shape[:2]
+            # Calculate target pixel coordinates from geographic coordinates
+            target_x, target_y = calculate_pixel_coordinates(animal_x, animal_y, rect_coords, (width, height))
+
+            # Draw a red arrow from center to the target point
+            center_x, center_y = width // 2, height // 2
+            
+            # Hedef noktanın ekran sınırlarını kontrol et
+            if target_x < 0:
+                target_x = 0
+            elif target_x > width:
+                target_x = width
+            if target_y < 0:
+                target_y = 0
+            elif target_y > height:
+                target_y = height
+
+            # Okun başlangıç noktasını hesapla
+            arrow_length = ((target_x - center_x) ** 2 + (target_y - center_y) ** 2) ** 0.5
+            if arrow_length > 40:
+                ratio = 40 / arrow_length
+                start_x = int(target_x + (center_x - target_x) * ratio)
+                start_y = int(target_y + (center_y - target_y) * ratio)
+
+            # Ok çizimi
+            cv2.arrowedLine(frame, (start_x, start_y), (target_x, target_y), (255, 255, 255), 2)
+
+            # Hayvanın ismini ve uzaklığını yazdır
+            text = f"{animal_data['name']}: {animal_data['distance_metre']:.2f} metre"
+            text_width, text_height = cv2.getTextSize(text, font, 0.5, 1)[0]
+            text_x = start_x if start_x + text_width + 10 < width else width - text_width - 10
+            text_y = start_y + 20
+            cv2.putText(frame, text, (text_x, text_y), font, 0.5, text_color, 1, cv2.LINE_AA)
+                
         # Yüksekliği artır
         y_offset += 30
 
