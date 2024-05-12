@@ -6,10 +6,6 @@ from shapely.geometry import Point, Polygon
 video_path = "videos/ornek_video.mp4"  # Video dosyasının yolunu belirtin
 cap = cv2.VideoCapture(video_path)
 
-# JSON dosyasını aç
-json_file = "output.json"
-with open(json_file, 'r') as f:
-    data = json.load(f)
 
 # Video boyutlarını al
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -50,6 +46,11 @@ while(cap.isOpened()):
     if not ret:
         break
 
+    # JSON dosyasını aç
+    json_file = "output.json"
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+        
     # Köşelere metinleri yazdır
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 0.7
