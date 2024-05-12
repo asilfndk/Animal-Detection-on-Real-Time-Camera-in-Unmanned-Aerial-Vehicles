@@ -79,7 +79,13 @@ while(cap.isOpened()):
             cv2.putText(frame, f"{animal_data['name']} icinde", (0, y_offset), font, 0.5, text_color, 1, cv2.LINE_AA)
             animal_pixel_x, animal_pixel_y = calculate_pixel_coordinates(animal_x, animal_y, rect_coords, (width, height))
             # Küçük bir yeşil kare oluşturarak hayvanı göster
-            cv2.rectangle(frame, (animal_pixel_x - 5, animal_pixel_y - 5), (animal_pixel_x + 5, animal_pixel_y + 5), (0, 255, 0), -1)
+            cv2.rectangle(frame, (animal_pixel_x - 10, animal_pixel_y - 10), (animal_pixel_x + 10, animal_pixel_y + 10), (255, 0, 0), 1)
+            # Hayvanın ismini ve uzaklığını altına yazdır
+            text = f"{animal_data['name']}: Sicaklik{animal_data['temperature']:.2f}"
+            text_width, text_height = cv2.getTextSize(text, font, 0.5, 1)[0]
+            text_x = animal_pixel_x - text_width // 2
+            text_y = animal_pixel_y + 20
+            cv2.putText(frame, text, (text_x, text_y), font, 0.5, text_color, 1, cv2.LINE_AA)
         else:
             # Hayvanın dikdörtgenin hangi kenarına daha yakın olduğunu bul
             nearest_side_index = None
@@ -125,10 +131,10 @@ while(cap.isOpened()):
                 start_y = int(target_y + (center_y - target_y) * ratio)
 
             # Ok çizimi
-            cv2.arrowedLine(frame, (start_x, start_y), (target_x, target_y), (255, 255, 255), 2)
+            cv2.arrowedLine(frame, (start_x, start_y), (target_x, target_y), (0, 255, 0), 2)
 
             # Hayvanın ismini ve uzaklığını yazdır
-            text = f"{animal_data['name']}: {animal_data['distance_metre']:.2f} metre"
+            text = f"{animal_data['name']}: {animal_data['distance_metre']:.2f} metre Sicaklik{animal_data['temperature']:.2f}"
             text_width, text_height = cv2.getTextSize(text, font, 0.5, 1)[0]
             text_x = start_x if start_x + text_width + 10 < width else width - text_width - 10
             text_y = start_y + 20
