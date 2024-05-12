@@ -77,6 +77,9 @@ while(cap.isOpened()):
         # Hayvanın konumunu dikdörtgenin içinde mi dışında mı kontrol et
         if rect_polygon.contains(animal_point):
             cv2.putText(frame, f"{animal_data['name']} icinde", (0, y_offset), font, 0.5, text_color, 1, cv2.LINE_AA)
+            animal_pixel_x, animal_pixel_y = calculate_pixel_coordinates(animal_x, animal_y, rect_coords, (width, height))
+            # Küçük bir yeşil kare oluşturarak hayvanı göster
+            cv2.rectangle(frame, (animal_pixel_x - 5, animal_pixel_y - 5), (animal_pixel_x + 5, animal_pixel_y + 5), (0, 255, 0), -1)
         else:
             # Hayvanın dikdörtgenin hangi kenarına daha yakın olduğunu bul
             nearest_side_index = None
