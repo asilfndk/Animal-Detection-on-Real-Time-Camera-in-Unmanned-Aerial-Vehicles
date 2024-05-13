@@ -10,12 +10,45 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-        }    
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
         #map {
-            height: 800px;
-            width: 100%;
+            height: 500px;
+            width: 80%;
             margin-top: 20px;
-        }  
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background-color: #ffc107;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -23,7 +56,9 @@
         <input type="hidden" id="markerData" name="markerData">
         <input type="hidden" id="rectangleData" name="rectangleData">
     </form>    
-    <div id="map" ></div>
+    <div id="map"></div>
+    <button class="btn" onclick="submitForm()">Submit</button>
+    <div id="alert" class="alert" style="display: none;">You have reached the maximum limit of 5 markers.</div>
 
     <script>
         ymaps.ready(init);
@@ -44,8 +79,7 @@
                     clickCounter++;
                     updateFormData();  // Güncel veriyi formda sakla
                 } else {
-                    alert('You have reached the maximum limit of 5 markers.');
-                    submitForm(); // Formu gönder
+                    document.getElementById('alert').style.display = 'block';
                 }
             });
 
@@ -104,42 +138,24 @@
 
                 updateFormData();  // Güncel veriyi formda sakla
             });
+        }
 
-            function updateFormData() {
-                // Marker ve dikdörtgen verilerini formda sakla
-                var markerData = [];
-                map.geoObjects.each(function (geoObject) {
-                    markerData.push(geoObject.geometry.getCoordinates());
-                });
-
-                var rectangleData = rectangle.geometry.getCoordinates()[0];
-
-                // JSON.stringify() ile JavaScript nesnelerini JSON formatına dönüştür
-                document.getElementById('markerData').value = JSON.stringify(markerData);
-                document.getElementById('rectangleData').value = JSON.stringify(rectangleData);
-            }
-
-            function submitForm() {
-                document.getElementById('dataForm').submit(); // Formu gönder
-            }
-
-            function drawLine(center_x, center_y) {
-            var line = new ymaps.GeoObject({
-                geometry: {
-                    type: "LineString",
-                    coordinates: [markers[0].geometry.getCoordinates(), (center_x, center_y)],
-                },
-                properties: {
-                    hintContent: "Line"
-                }
-            }, {
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWidth: 2
+        function updateFormData() {
+            // Marker ve dikdörtgen verilerini formda sakla
+            var markerData = [];
+            map.geoObjects.each(function (geoObject) {
+                markerData.push(geoObject.geometry.getCoordinates());
             });
 
-            map.geoObjects.add(line);
-        }        
+            var rectangleData = rectangle.geometry.getCoordinates()[0];
+
+            // JSON.stringify() ile JavaScript nesnelerini JSON formatına dönüştür
+            document.getElementById('markerData').value = JSON.stringify(markerData);
+            document.getElementById('rectangleData').value = JSON.stringify(rectangleData);
+        }
+
+        function submitForm() {
+            document.getElementById('dataForm').submit(); // Formu gönder
         }
     </script>
 </body>
