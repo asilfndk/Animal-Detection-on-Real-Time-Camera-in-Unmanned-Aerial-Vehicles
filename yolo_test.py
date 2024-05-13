@@ -26,7 +26,7 @@ H, W, _ = frame.shape
 out = cv2.VideoWriter(video_path_out, cv2.VideoWriter_fourcc(*'MP4V'), int(cap.get(cv2.CAP_PROP_FPS)), (W, H))
 
 # Load the trained model
-model = YOLO('runs/detect/train/weights/best.pt')
+model = YOLO('yolomodels/safari-animals-1/detect/train/weights/best.pt')
 
 # Define detection threshold
 threshold = 0.5
