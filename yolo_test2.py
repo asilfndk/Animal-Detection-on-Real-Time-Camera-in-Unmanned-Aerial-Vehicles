@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # Define input and output video paths and model path
     input_video_path = 'videos/testvideo.mp4'
     output_video_path = 'videos/output_video.mp4'
-    model_path = 'yolomodels/animals-4/detect/train/weights/best.pt'
+    model_path = 'yolomodels/cattle/detect/train/weights/best.pt'
 
     # Run the object detection on the video
     detect_objects_in_video(input_video_path, output_video_path, model_path)
