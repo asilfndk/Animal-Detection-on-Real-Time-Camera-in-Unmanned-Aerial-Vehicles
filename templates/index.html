@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,12 +19,13 @@
         }
 
         #map {
-            height: 500px;
+            height: 1000px;
             width: 80%;
             margin-top: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            display: none; /* Initially hide the map */
         }
 
         .btn {
@@ -49,22 +50,55 @@
             background-color: #ffc107;
             color: #333;
         }
+
+        #animalForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #animalForm input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <form id="dataForm" method="POST" action="/sonuc">
         <input type="hidden" id="markerData" name="markerData">
         <input type="hidden" id="rectangleData" name="rectangleData">
-    </form>    
+    </form>
+
+    <div id="animalForm">
+        <h1>İHA Hayvan Takip Sistemi</h1>
+        <input type="number" id="animalCount" placeholder="Hayvan Adeti Giriniz" min="1">
+        <button class="btn" onclick="startMapping()">Harita Başlat</button>
+    </div>
+
     <div id="map"></div>
-    <button class="btn" onclick="submitForm()">Submit</button>
-    <div id="alert" class="alert" style="display: none;">You have reached the maximum limit of 5 markers.</div>
+    <button class="btn" onclick="submitForm()" style="display: none;" id="submitButton">Kaydet</button>
+    <div id="alert" class="alert" style="display: none;">Girilen Hayvan Miktarından fazla hayvan oluşturulamaz.</div>
 
     <script>
         ymaps.ready(init);
         var map;
         var rectangle;
         var clickCounter = 0;
+        var animalCount;
+
+        function startMapping() {
+            animalCount = document.getElementById('animalCount').value;
+            if (animalCount && animalCount > 0) {
+                document.getElementById('animalForm').style.display = 'none';
+                document.getElementById('map').style.display = 'block';
+                document.getElementById('submitButton').style.display = 'inline-block';
+            } else {
+                alert('Lütfen hayvan miktarı giriniz.');
+            }
+        }
 
         function init() {
             map = new ymaps.Map("map", {
@@ -73,7 +107,7 @@
             });
 
             map.events.add('click', function (e) {
-                if (clickCounter < 5) {
+                if (clickCounter < animalCount) {
                     var clickCoords = e.get('coords');
                     addMarker(clickCoords);
                     clickCounter++;
