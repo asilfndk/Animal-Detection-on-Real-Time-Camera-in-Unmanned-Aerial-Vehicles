@@ -51,4 +51,3 @@ while True:
 # Release the webcam and close all OpenCV windows
 webcamera.release()
 cv2.destroyAllWindows()
-
