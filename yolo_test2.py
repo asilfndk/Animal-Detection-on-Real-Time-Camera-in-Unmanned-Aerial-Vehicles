@@ -29,7 +29,7 @@ def detect_objects_in_video(video_path, output_path, model_path):
         results = model(frame)
 
         # Render the results on the frame
-        annotated_frame = results[0].plot()
+        annotated_frame = results[0]
 
         # Write the frame to the output video file
         out.write(annotated_frame)
