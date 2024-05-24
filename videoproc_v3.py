@@ -7,6 +7,9 @@ from ultralytics import YOLO
 video_path = "videos/testvideo.mp4"  # Video dosyasının yolunu belirtin
 cap = cv2.VideoCapture(video_path)
 
+# Load the YOLO model
+model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')
+
 
 # Video boyutlarını al
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -151,30 +154,41 @@ while(cap.isOpened()):
     # q tuşuna basılınca videoyu kapat
     key = cv2.waitKey(1)
     if key == ord('y'):
-        # Load the YOLO model
-        model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')
 
-        # Print the class names
-        print(model.names)
+        cv2.destroyWindow('Video')
 
-        # Run the YOLO model to get tracking results
-        results = model.track(frame, classes=0, conf=0.8, imgsz=320)
+        while True:
+            success, plotted_frame = cap.read()
+    
+            if not success:
+                print("Failed to capture frame from webcam. Exiting...")
+                break
+    
+            # Run the YOLO model to get tracking results
+            results = model.track(plotted_frame, classes=0, conf=0.8, imgsz=320)
+    
+            # Extract the number of boxes detected
+            num_boxes = len(results[0].boxes)
+    
+            # Add text to the frame showing the total number of detections
+            cv2.putText(frame, f"Total: {num_boxes}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+    
+            # Plot the results on the frame
+            plotted_frame = results[0].plot()
+    
+            # Display the frame with detections
+            cv2.imshow("YOLO", plotted_frame)
 
-        # Extract the number of boxes detected
-        num_boxes = len(results[0].boxes)
+            # Break the loop if 'y' is pressed
+            if cv2.waitKey(1) == ord('y'):
+                cv2.destroyWindow("YOLO")
+                cv2.imshow('Video', frame)
+                break
+                            
+            # Break the loop if 'q' is pressed
+            elif cv2.waitKey(1) == ord('q'):
+                break
 
-        # Add text to the frame showing the total number of detections
-        #cv2.putText(frame, f"Total: {num_boxes}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-
-        # Plot the results on the frame
-        plotted_frame = results[0].plot()
-
-        # Display the frame with detections
-        #cv2.imshow("Live Camera", plotted_frame)
-
-        # Break the loop if 'y' is pressed
-        if cv2.waitKey(1) == ord('y'):
-            break
     elif key == ord('q'):
         break
 
