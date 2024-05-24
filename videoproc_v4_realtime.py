@@ -167,26 +167,31 @@ while(cap.isOpened()):
             
             frame_count += 1
             if frame_count % process_every_n_frames != 0:
-                # Run the YOLO model to get tracking results
-                results = model.track(frame, classes=0, conf=0.8, imgsz=320)
-    
-                # Extract the number of boxes detected
-                num_boxes = len(results[0].boxes)
-    
-                # Add text to the frame showing the total number of detections
-                cv2.putText(frame, f"Total: {num_boxes}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    
-                # Plot the results on the frame
-                plotted_frame = results[0].plot()
-    
-                # Display the frame with detections
-                cv2.imshow("YOLO", plotted_frame)
+                # Run the YOLOv8 model to get detection results
+                results = model(frame)
+        
+                # Extract the results
+                for result in results:
+                    boxes = result.boxes
+                    for box in boxes:
+                        # Get box coordinates
+                        x1, y1, x2, y2 = map(int, box.xyxy[0])
+                        confidence = box.conf[0]
 
-                # Break the loop if 'y' is pressed
-                if cv2.waitKey(1) == ord('y'):
-                    cv2.destroyWindow("YOLO")
-                    cv2.imshow('Video', frame)
-                    break
+                        # Draw the box
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                        # Display the confidence
+                        cv2.putText(frame, f'{confidence:.2f}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+                # Display the frame with detections
+                cv2.imshow("YOLO", frame)
+
+            # Break the loop if 'y' is pressed
+            if cv2.waitKey(1) == ord('y'):
+                cv2.destroyWindow("YOLO")
+                cv2.imshow('Video', frame)
+                break
                 
     elif key == ord('q'):
         break
