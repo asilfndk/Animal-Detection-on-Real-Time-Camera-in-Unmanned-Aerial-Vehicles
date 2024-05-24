@@ -1,6 +1,7 @@
 import cv2
 import json
 from shapely.geometry import Point, Polygon
+from ultralytics import YOLO
 
 # Video dosyasını aç
 video_path = "videos/testvideo.mp4"  # Video dosyasının yolunu belirtin
@@ -148,7 +149,33 @@ while(cap.isOpened()):
     cv2.imshow('Video', frame)
     
     # q tuşuna basılınca videoyu kapat
-    if cv2.waitKey(1) == ord('q'):
+    key = cv2.waitKey(1)
+    if key == ord('y'):
+        # Load the YOLO model
+        model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')
+
+        # Print the class names
+        print(model.names)
+
+        # Run the YOLO model to get tracking results
+        results = model.track(frame, classes=0, conf=0.8, imgsz=320)
+
+        # Extract the number of boxes detected
+        num_boxes = len(results[0].boxes)
+
+        # Add text to the frame showing the total number of detections
+        #cv2.putText(frame, f"Total: {num_boxes}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+
+        # Plot the results on the frame
+        plotted_frame = results[0].plot()
+
+        # Display the frame with detections
+        #cv2.imshow("Live Camera", plotted_frame)
+
+        # Break the loop if 'y' is pressed
+        if cv2.waitKey(1) == ord('y'):
+            break
+    elif key == ord('q'):
         break
 
 # Açılan pencereleri kapat
