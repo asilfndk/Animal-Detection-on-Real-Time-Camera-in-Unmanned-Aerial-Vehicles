@@ -9,10 +9,7 @@ def detect_objects_in_video(input_video_path):
         return
 
     # Load the YOLOv8 model
-    model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')  # 'yolov8n.pt' yerine kendi modelinizin yolunu koyun
-
-    # Print the class names
-    print(model.names)
+    model = YOLO('yolomodel/model/detect/train/weights/best.pt')
 
     # Initialize the video capture
     video = cv2.VideoCapture(input_video_path)
@@ -46,7 +43,7 @@ def detect_objects_in_video(input_video_path):
                 cv2.putText(frame, f'{confidence:.2f}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         # Display the frame with detections
-        cv2.imshow("Frame with Detections", frame)
+        cv2.imshow("YOLO", frame)
         
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) == ord('q'):

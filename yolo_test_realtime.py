@@ -2,7 +2,7 @@ import cv2
 from ultralytics import YOLO
 
 # Load the YOLO model
-model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')
+model = YOLO('yolomodel/model/detect/train/weights/best.pt')
 
 # Print the class names
 print(model.names)

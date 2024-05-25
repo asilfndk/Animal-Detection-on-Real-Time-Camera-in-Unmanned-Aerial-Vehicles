@@ -8,7 +8,7 @@ video_path = "videos/testvideo.mp4"  # Video dosyasının yolunu belirtin
 cap = cv2.VideoCapture(video_path)
 
 # Load the YOLO model
-model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')
+model = YOLO('yolomodel/model/detect/train/weights/best.pt')
 
 # Video boyutlarını al
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
