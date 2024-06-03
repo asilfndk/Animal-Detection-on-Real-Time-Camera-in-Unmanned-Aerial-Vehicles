@@ -4,7 +4,7 @@ from shapely.geometry import Point, Polygon
 from ultralytics import YOLO
 
 # Video dosyasını aç
-video_path = 0  # Video dosyasının yolunu belirtin
+video_path = "videos/testvideo.mp4"  # Video dosyasının yolunu belirtin
 cap = cv2.VideoCapture(video_path)
 
 # Load the YOLO model
@@ -151,7 +151,7 @@ while(cap.isOpened()):
     cv2.imshow('Video', frame)
 
     # y tuşuna basınca yoloya geçiş yap ya da q tuşuna basılınca videoyu kapat
-    key = cv2.waitKey(30)
+    key = cv2.waitKey(1)
     if key == ord('y'):
 
         cv2.destroyWindow('Video')
@@ -190,7 +190,7 @@ while(cap.isOpened()):
                 cv2.imshow("YOLO", frame)
 
             # Break the loop if 'y' is pressed
-            if cv2.waitKey(30) == ord('y'):
+            if cv2.waitKey(1) == ord('y'):
                 cv2.destroyWindow("YOLO")
                 cv2.imshow('Video', frame)
                 break

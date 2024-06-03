@@ -42,13 +42,13 @@ def write_to_json(data):
         json.dump(data, f, indent=4)
 
 def main():
+    with open("output.json", "r") as f:
+        data = json.load(f)
+
+    center_x = data["center_x"]
+    center_y = data["center_y"]
 
     while True:
-        with open("output.json", "r") as f:
-            data = json.load(f)
-
-        center_x = data["center_x"]
-        center_y = data["center_y"]
         data["animal_coords"] = move_animals(data["animal_coords"], center_x, center_y)
         write_to_json(data)
         time.sleep(5)  # 5 saniye bekle

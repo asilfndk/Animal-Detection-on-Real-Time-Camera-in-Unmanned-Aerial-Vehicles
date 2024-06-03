@@ -3,7 +3,7 @@ import json
 from shapely.geometry import Point, Polygon
 
 # Video dosyasını aç
-video_path = 0  # Video dosyasının yolunu belirtin
+video_path = "videos/testvideo.mp4"  # Video dosyasının yolunu belirtin
 cap = cv2.VideoCapture(video_path)
 
 

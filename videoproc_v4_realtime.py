@@ -4,10 +4,10 @@ from shapely.geometry import Point, Polygon
 from ultralytics import YOLO
 
 # Kamera aç
-cap = cv2.VideoCapture('videos/ornek_video.mp4')
+cap = cv2.VideoCapture(0)
 
 # Load the YOLO model
-model = YOLO('yolomodel/model/detect/train/weights/best.pt')
+model = YOLO('yolomodels/animals-4/detect/train/weights/best.pt')
 
 # Video boyutlarını al
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -150,7 +150,7 @@ while(cap.isOpened()):
     cv2.imshow('Video', frame)
     
     # q tuşuna basılınca videoyu kapat
-    key = cv2.waitKey(50)
+    key = cv2.waitKey(1)
     if key == ord('y'):
 
         cv2.destroyWindow('Video')
