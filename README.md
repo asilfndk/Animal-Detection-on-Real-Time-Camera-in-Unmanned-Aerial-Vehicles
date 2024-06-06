@@ -1,4 +1,4 @@
-# UAV Live Animal Detection
+# Animal Detection on Real Time Camera in Unmanned Aerial Vehicles
 
 This project aims to track and monitor wild animals using UAV (Unmanned Aerial Vehicle) cameras. It involves advanced image processing techniques to detect and visualize animals' positions within the UAV camera's field of view.
 
